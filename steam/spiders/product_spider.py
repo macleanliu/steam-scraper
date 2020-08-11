@@ -36,10 +36,7 @@ def load_product(response):
             line = re.sub('[\r\t\n]', '', line).strip()
             for prop, name in [
                 ('Title:', 'title'),
-                ('Genre:', 'genres'),
-                ('Developer:', 'developer'),
-                ('Publisher:', 'publisher'),
-                ('Release Date:', 'release_date')
+                ('Genre:', 'genres')
             ]:
                 if prop in line:
                     item = line.replace(prop, '').strip()
@@ -47,6 +44,9 @@ def load_product(response):
     except:  # noqa E722
         pass
 
+    loader.add_css('developer','#developers_list > a ::text')
+    loader.add_css('publisher','#game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(4) > div.summary.column > a ::text')
+    loader.add_css('release_date','#game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div.release_date > div.date ::text')
     loader.add_css('app_name', '.apphub_AppName ::text')
     loader.add_css('specs', '.game_area_details_specs a ::text')
     loader.add_css('tags', 'a.app_tag::text')
@@ -81,6 +81,12 @@ class ProductSpider(CrawlSpider):
 
     allowed_domains = ['steampowered.com']
 
+    headers= {
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6,ja;q=0.5,fr;q=0.4,vi;q=0.3,de;q=0.2,th;q=0.1",
+            "CC": "HK"
+            }
+
+
     rules = [
         Rule(LinkExtractor(
              allow='/app/(.+)/',
@@ -97,7 +103,8 @@ class ProductSpider(CrawlSpider):
 
     def start_requests(self):
         if self.steam_id:
-            yield Request(f'http://store.steampowered.com/app/{self.steam_id}/',
+            yield Request(f'http://store.steampowered.com/app/{self.steam_id}/?l=schinese&cc=US',
+                          headers=headers,
                           callback=self.parse_product)
         else:
             yield from super().start_requests()
